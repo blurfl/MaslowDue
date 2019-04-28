@@ -127,33 +127,147 @@ long compute_PID(struct PID_MOTION *axis_ptr)
   if(!posEnabled) Speed = 0;   // all stop (forced)
  #endif 
 
+//    printPgmString(PSTR("sign "));
+//    printInteger((int32_t)sign);
+//    printPgmString(PSTR(" speed "));
+//    printInteger((int32_t)Speed);
+//    printPgmString(PSTR(" PWM_value "));
+//    printInteger((int32_t)PWM_value);
+//    printPgmString(PSTR("\r\n"));
+
+/*
+#ifdef DRIVER_TLE5206
   if(sign > 0)
-  {
-  #ifdef DRIVER_TLE5206
-      digitalWrite(axis_ptr->M_PWM, 1);       // spin Positive
-      if(Motors_Disabled)
-        digitalWrite(axis_ptr->P_PWM, 1);
-      else
-        analogWrite(axis_ptr->P_PWM, (255-PWM_value));
-  #else
-      analogWrite(axis_ptr->M_PWM, 0);       // spin Positive
-      analogWrite(axis_ptr->P_PWM, PWM_value);
-  #endif
+#pragma message "TLE5206 - sign > 0"
+  {                                             // spin Positive
+        digitalWrite(axis_ptr->M_PWM, 1);
+        if(Motors_Disabled)
+          digitalWrite(axis_ptr->P_PWM, 1);
+        else
+          analogWrite(axis_ptr->P_PWM, (255-PWM_value));
   }
   else
-  {
-   #ifdef DRIVER_TLE5206
-      digitalWrite(axis_ptr->P_PWM, 1);       // spin Negative
+#pragma message "TLE5206 - sign not > 0"
+  {                                             // spin Negative
+      digitalWrite(axis_ptr->P_PWM, 1);
       if(Motors_Disabled)
         digitalWrite(axis_ptr->M_PWM, 1);
       else
       analogWrite(axis_ptr->M_PWM, (255-PWM_value));
-   #else
-      analogWrite(axis_ptr->P_PWM, 0);       // spin Negative
-      analogWrite(axis_ptr->M_PWM, PWM_value);
-   #endif
   }
-  
+#endif
+//-----------------------------------------------
+
+#ifdef DRIVER_TLE9201
+  if(sign > 0)
+#pragma message "TLE9201 - sign > 0"
+  {                                             // spin Positive
+        digitalWrite(17,HIGH);
+        digitalWrite(axis_ptr->mDIR, LOW);
+        digitalWrite(axis_ptr->ENABLE, LOW);       
+        analogWrite(axis_ptr->P_PWM, PWM_value);
+  }
+  else
+#pragma message "TLE9201 - sign not > 0"
+  {                                             // spin Negative
+      digitalWrite(17,LOW);
+      digitalWrite(axis_ptr->mDIR, HIGH);
+      digitalWrite(axis_ptr->ENABLE, LOW);       
+      analogWrite(axis_ptr->P_PWM, PWM_value);
+  }
+#endif
+//-----------------------------------------------
+
+#if !defined DRIVER_TLE5206 && !defined DRIVER_TLE9201 
+  if(sign > 0)
+#pragma message "!defined DRIVER_TLE5206 && !defined DRIVER_TLE9201 - sign > 0"
+  {                                             // spin Positive
+        analogWrite(axis_ptr->M_PWM, 0);
+        analogWrite(axis_ptr->P_PWM, PWM_value);
+  }
+  else
+#pragma message "!defined DRIVER_TLE5206 && !defined DRIVER_TLE9201 - sign not > 0"
+{                                             // spin Negative
+      analogWrite(axis_ptr->P_PWM, 0);
+      analogWrite(axis_ptr->M_PWM, PWM_value);
+  }
+#endif
+//-----------------------------------------------
+/*/
+
+/**/
+  if(sign > 0)
+  {                                             // spin Positive
+    #ifdef DRIVER_TLE5206
+/*//        digitalWrite(axis_ptr->M_PWM, 1);
+//        if(Motors_Disabled)
+//          digitalWrite(axis_ptr->P_PWM, 1);
+//        else
+//          analogWrite(axis_ptr->P_PWM, (255-PWM_value));
+        digitalWrite(17,HIGH);
+//        digitalWrite(axis_ptr->mDIR, LOW);
+        digitalWrite(axis_ptr->M_PWM, LOW);
+        digitalWrite(axis_ptr->ENABLE, LOW);       
+        analogWrite(axis_ptr->P_PWM, PWM_value);
+        */
+    #elifdef DRIVER_TLE9201
+#pragma message "TLE9201 - sign > 0"
+        digitalWrite(17,HIGH);
+//        digitalWrite(axis_ptr->mDIR, LOW);
+        digitalWrite(axis_ptr->M_PWM, LOW);
+        digitalWrite(axis_ptr->ENABLE, LOW);       
+        analogWrite(axis_ptr->P_PWM, PWM_value);
+    #else
+#pragma message "else - sign > 0"
+    /*
+//        analogWrite(axis_ptr->M_PWM, 0);
+//        analogWrite(axis_ptr->P_PWM, PWM_value);
+    */
+        digitalWrite(17,HIGH);
+//        digitalWrite(axis_ptr->mDIR, LOW);
+        digitalWrite(axis_ptr->M_PWM, HIGH);
+        digitalWrite(axis_ptr->ENABLE, LOW);       
+        analogWrite(axis_ptr->P_PWM, PWM_value);
+
+    #endif
+  }
+  else
+  {                                             // spin Negative
+    #ifdef DRIVER_TLE5206
+/*
+ 
+//      digitalWrite(axis_ptr->P_PWM, 1);
+//      if(Motors_Disabled)
+//        digitalWrite(axis_ptr->M_PWM, 1);
+//      else
+//      analogWrite(axis_ptr->M_PWM, (255-PWM_value));
+      digitalWrite(17,LOW);
+//      digitalWrite(axis_ptr->mDIR, HIGH);
+        digitalWrite(axis_ptr->M_PWM, HIGH);
+      digitalWrite(axis_ptr->ENABLE, LOW);       
+      analogWrite(axis_ptr->P_PWM, PWM_value);
+*/
+    #elifdef DRIVER_TLE9201
+#pragma message "TLE9201 - sign not > 0"
+      digitalWrite(17,LOW);
+//      digitalWrite(axis_ptr->mDIR, HIGH);
+        digitalWrite(axis_ptr->M_PWM, HIGH);
+      digitalWrite(axis_ptr->ENABLE, LOW);       
+      analogWrite(axis_ptr->P_PWM, PWM_value);
+    #else
+#pragma message "else - sign not > 0"
+/*
+//      analogWrite(axis_ptr->P_PWM, 0);
+//      analogWrite(axis_ptr->M_PWM, PWM_value);
+*/
+      digitalWrite(17,LOW);
+//      digitalWrite(axis_ptr->mDIR, HIGH);
+        digitalWrite(axis_ptr->M_PWM, LOW);
+      digitalWrite(axis_ptr->ENABLE, LOW);       
+      analogWrite(axis_ptr->P_PWM, PWM_value);
+    #endif
+  }
+/**/  
   return(axis_ptr->Speed);
 }
 
@@ -161,22 +275,32 @@ void motorsDisabled(void)
 {
     Motors_Disabled = 1;
   #ifndef DRIVER_TLE5206
-    digitalWrite(X_ENABLE, 0);  // disable the motor driver
-    digitalWrite(Y_ENABLE, 0);  
-    digitalWrite(Z_ENABLE, 0);
+    #ifdef DRIVER_TLE9201 
+      digitalWrite(X_ENABLE, 1);  // disable the motor driver
+      digitalWrite(Y_ENABLE, 1);  
+      digitalWrite(Z_ENABLE, 1);
+    #else
+      digitalWrite(X_ENABLE, 0);  // disable the motor driver
+      digitalWrite(Y_ENABLE, 0);  
+      digitalWrite(Z_ENABLE, 0);
+    #endif
   #endif
-//  DEBUG_COM_PORT.print("MOTORS OFF\n");
 }
 
 void motorsEnabled(void)
 {
     Motors_Disabled = 0;
   #ifndef DRIVER_TLE5206
-    digitalWrite(X_ENABLE, 1);  // Enable the motor driver
-    digitalWrite(Y_ENABLE, 1);
-    digitalWrite(Z_ENABLE, 1);  
+    #ifdef DRIVER_TLE9201 
+      digitalWrite(X_ENABLE, 0);  // Enable the motor driver
+      digitalWrite(Y_ENABLE, 0);  
+      digitalWrite(Z_ENABLE, 0);
+    #else
+      digitalWrite(X_ENABLE, 1);  // Enable the motor driver
+      digitalWrite(Y_ENABLE, 1);
+      digitalWrite(Z_ENABLE, 1);  
+    #endif
   #endif
-//  DEBUG_COM_PORT.print("MOTORS ON\n");
 }
 
 void MotorPID_Timer_handler(void)  // PID interrupt service routine 
@@ -350,6 +474,14 @@ void setup()
   int microseconds_per_millisecond = 1000;
 
   noInterrupts();           // disable all interrupts
+
+/*      
+ *       
+ */
+ pinMode(17,OUTPUT);
+/*
+ * 
+ */
   
   pinMode(HeartBeatLED, OUTPUT);
   digitalWrite(HeartBeatLED, LOW);
@@ -366,7 +498,14 @@ void setup()
     analogWrite(XP_PWM,255);
     analogWrite(XM_PWM,255);
     x_axis.ENABLE = X_FAULT;
-  #else
+  #elifdef DRIVER_TLE9201
+    pinMode(X_DIR, OUTPUT);
+    pinMode(X_ENABLE, OUTPUT);
+    digitalWrite(X_DIR, 1);    // direction forward
+    digitalWrite(X_ENABLE, 1);  // 1= disable, 0= enable
+    analogWrite(XP_PWM, 0);     // speed = 0
+//    DEBUG_COM_PORT.print("TLE9201 X pins setup\r\n");
+ #else
     analogWrite(XP_PWM, 0);
     analogWrite(XM_PWM, 0);
     pinMode(X_ENABLE, OUTPUT);
@@ -380,11 +519,18 @@ void setup()
   y_axis.P_PWM = YP_PWM;
   y_axis.M_PWM = YM_PWM;
   #ifdef DRIVER_TLE5206
+    pinMode(Y_DIR, OUTPUT);
     digitalWrite(Y_FAULT,1);
     pinMode(Y_FAULT,INPUT);
     analogWrite(YP_PWM,255);
     analogWrite(YM_PWM,255);
     y_axis.ENABLE = Y_FAULT;
+  #elifdef DRIVER_TLE9201
+    pinMode(Y_ENABLE, OUTPUT);
+    digitalWrite(Y_DIR, 1);    // direction forward
+    digitalWrite(Y_ENABLE, 1);  // 1= disable, 0= enable
+\    analogWrite(YP_PWM, 0);     // speed = 0
+//    DEBUG_COM_PORT.print("TLE9201 Y pins setup\r\n");
   #else
     analogWrite(YP_PWM, 0);
     analogWrite(YM_PWM, 0);
@@ -404,6 +550,13 @@ void setup()
     analogWrite(ZP_PWM,255);
     analogWrite(ZM_PWM,255);
     z_axis.ENABLE = Z_FAULT;
+  #elifdef DRIVER_TLE9201
+    pinMode(Z_DIR, OUTPUT);
+    pinMode(Z_ENABLE, OUTPUT);
+    digitalWrite(Z_DIR, 1);     // direction forward
+    digitalWrite(Z_ENABLE, 1);  // 1= disable, 0= enable
+    analogWrite(ZP_PWM, 0);     // speed = 0
+//    DEBUG_COM_PORT.print("TLE9201 Z pins setup\r\n");
   #else
     analogWrite(ZP_PWM, 0);
     analogWrite(ZM_PWM, 0);
@@ -470,10 +623,13 @@ void setup()
 
   interrupts();               // enable all interrupts
 
-  #if (DEBUG_COM_PORT != MACHINE_COM_PORT)
-    DEBUG_COM_PORT.begin(BAUD_RATE); // setup serial for tuning mode only
-    DEBUG_COM_PORT.print("DEBUG\n");
-  #endif
+  printPgmString(PSTR("TLE9201 setup\r\n"));
+//  DEBUG_COM_PORT.print("\r\n------------\r\nDEBUG Setup end\r\n------------\r\n");
+
+//  #if (DEBUG_COM_PORT != MACHINE_COM_PORT)
+//    DEBUG_COM_PORT.begin(BAUD_RATE); // setup serial for tuning mode only
+//    DEBUG_COM_PORT.print("DEBUG\n");
+//  #endif
   
 
 #ifndef TUNING_MODE

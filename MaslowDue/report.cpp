@@ -179,6 +179,12 @@ void report_feedback_message(uint8_t message_code)
 void report_init_message()
 {
   printPgmString(PSTR("\r\nGrbl " GRBL_VERSION " ['$' for help]\r\n"));
+  #ifdef DRIVER_TLE9201
+    printPgmString(PSTR("TLE9201 is defined\r\n"));
+  #endif
+//  #if (DEBUG_COM_PORT != MACHINE_COM_PORT)
+//    DEBUG_COM_PORT.print("TLE9201 is defined\r\n");
+//  #endif
 }
 
 // Grbl help message

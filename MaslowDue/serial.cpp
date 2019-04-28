@@ -101,6 +101,7 @@ void serial_init()
         MACHINE_COM_PORT.begin(BAUD_RATE);
     // defaults to 8-bit, no parity, 1 stop bit
     serial_reset_read_buffer();
+  
   #else
     // Set baud rate
     #if BAUD_RATE < 57600
@@ -256,4 +257,3 @@ uint8_t serial_read() {
       }
   }
 }
-

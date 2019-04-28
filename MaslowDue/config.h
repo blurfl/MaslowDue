@@ -57,9 +57,9 @@
 // Serial port and baud rate
 #ifdef MASLOWCNC
   #define BAUD_RATE 38400
-  #define DEBUG_COM_PORT  Serial
+//  #define DEBUG_COM_PORT  Serial
   #define MACHINE_COM_PORT  Serial
-  // #define DEBUG_COM_PORT  SerialUSB
+   #define DEBUG_COM_PORT  SerialUSB
   // #define MACHINE_COM_PORT  SerialUSB
 #else
   // #define BAUD_RATE 230400

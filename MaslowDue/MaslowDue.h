@@ -26,11 +26,12 @@
 // -- SHIELD SELECTION
 //
 
-#define MakerMadeCNC_V1   /* Uncomment for V1 MakerMade CNC (1.0) Shield */
+//#define MakerMadeCNC_V1   /* Uncomment for V1 MakerMade CNC (1.0) Shield */
 //#define DRIVER_L298P_12    /* Uncomment this for a L298P version 1.2 Shield */
 //#define DRIVER_L298P_11    /* Uncomment this for a L298P version 1.1 Shield */
 //#define DRIVER_L298P_10    /* Uncomment this for a L298P version 1.0 Shield */
 //#define DRIVER_TLE5206       /* Uncomment this for a TLE5206 version Shield */
+#define DRIVER_TLE9201       /* Uncomment this for a TLE9201 version Shield */
 
 // uncomment this to work on PID settings and such using a terminal window
 //#define TUNING_MODE 1
@@ -108,12 +109,41 @@
   #define X_FAULT 12   /* 12 this is NOT an ENA output, this is a fault-line input */
 #endif
 
-#define SCLpin  15    /* EEPROM i2c signals */
-#define SDApin  14
+#ifdef DRIVER_TLE9201
+#pragma message "TLE9201 SELECTED"
+#define YP_PWM 6      /* Y-axis PWM output */
+  #define Y_mDIR 4       /* Y-axis direction */
+  #define YM_PWM 4      /* TLE9201 has only one PWM line, the other sets direction; use this pin for direction */
+  #define Y_ENABLE 5    /* this is an ENABLE input, LOW = ENABLE, HIGH = outputs tristated */
+  #define Y_FAULT 16    /* this is a fault-line input, LOW = FAULT (only true while Y_ENABLE is LOW)  */
+  
+  #define ZP_PWM 9      /* Z-axis PWM output */
+  #define Z_mDIR 7       /* Z-axis direction */
+  #define ZM_PWM 7      /* TLE9201 has only one PWM line, the other sets direction; use this pin for direction*/
+  #define Z_ENABLE 8    /* this is an ENABLE input, LOW = ENABLE, HIGH = outputs tristated */
+  #define Z_FAULT 15    /* this is a fault-line input, LOW = FAULT (only true while Z_ENABLE is LOW)  */
+  
+  #define XP_PWM 10     /* X-axis PWM output */
+  #define X_mDIR 11      /* X-axis direction */
+  #define XM_PWM 11  /* TLE9201 has only one PWM line, the other sets direction; use this pin for direction */
+  #define X_ENABLE 12   /* this is an ENABLE input, LOW = ENABLE, HIGH = outputs tristated */
+  #define X_FAULT 14    /* this is a fault-line input, LOW = FAULT (only true while X_ENABLE is LOW)  */
+#endif
 
+#ifdef DRIVER_TLE9201
+  #define SCLpin  37    /* MegaShield-TLE9201 board EEPROM i2c signals */
+  #define SDApin  36
+#else
+  #define SCLpin  15    /* Stock Maslow board AUX3-4 EEPROM i2c signals */
+  #define SDApin  14
+#endif
 
 #define SPINDLE_TIMER Timer1
-#define Spindle_PWM 16      /* output pin for Spindle PWM */
+#ifdef DRIVER_TLE9201
+  #define Spindle_PWM 40      /* output pin for Spindle PWM, AUX1 */
+#else
+  #define Spindle_PWM 16      /* output pin for Spindle PWM, AUX2 */
+#endif
 #define Spindle_PERIOD 2000 /* 500 hz */
 
 #ifdef MakerMadeCNC_V1
@@ -156,6 +186,14 @@
   #define Encoder_XA 2  /* X encoder phases A & B */
   #define Encoder_XB 3
 #endif
+#ifdef DRIVER_TLE9201
+  #define Encoder_YA 20 /* Y encoder phases A & B */
+  #define Encoder_YB 21
+  #define Encoder_ZA 19 /* Z encoder phases A & B */
+  #define Encoder_ZB 18
+  #define Encoder_XA 2  /* X encoder phases A & B */
+  #define Encoder_XB 3
+#endif
 
 
 #define X_STEP  33  /* GRBL harware interface */
@@ -189,6 +227,7 @@ struct PID_MOTION
   long int stepSize;
   int P_PWM;
   int M_PWM;
+  int mDIR;
   int ENABLE;
 };
 
